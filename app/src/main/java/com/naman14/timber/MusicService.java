@@ -410,21 +410,16 @@ public class MusicService extends Service {
 
             @Override
             public void onSeekTo(long pos) {
-                ToneGenerator tg = new ToneGenerator(AudioManager.STREAM_MUSIC, 100);
-                tg.startTone(ToneGenerator.TONE_PROP_BEEP2,150);
-
-                int queuePos = getQueuePosition();
-                removeTrack(queuePos);
-                String filename = getPath();
-                Log.i("DELETE", "=> delete " + filename);
-                delete(filename);
-                Log.i("DELETE", "<= delete " + filename);
-
                 seek(pos);
             }
 
             @Override
             public void onSkipToNext() {
+                gotoNext(true);
+            }
+
+            @Override
+            public void onSkipToPrevious() {
                 ToneGenerator tg = new ToneGenerator(AudioManager.STREAM_MUSIC, 100);
                 tg.startTone(ToneGenerator.TONE_CDMA_PIP,150);
 
@@ -435,7 +430,7 @@ public class MusicService extends Service {
                 delete(filename);
                 Log.i("DELETE", "<= delete " + filename);
 
-                gotoNext(true);
+                prev(false);
             }
 
             private void delete(String name) {
@@ -448,11 +443,6 @@ public class MusicService extends Service {
                     }
                 } catch (final SecurityException ignore) {
                 }
-            }
-
-            @Override
-            public void onSkipToPrevious() {
-                prev(false);
             }
 
             @Override
