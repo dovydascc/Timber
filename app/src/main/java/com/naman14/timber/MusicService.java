@@ -42,6 +42,7 @@ import android.media.MediaMetadataEditor;
 import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
 import android.media.RemoteControlClient;
+import android.media.ToneGenerator;
 import android.media.audiofx.AudioEffect;
 import android.net.Uri;
 import android.os.Build;
@@ -66,6 +67,7 @@ import android.support.v7.graphics.Palette;
 import android.text.TextUtils;
 import android.util.Log;
 
+import com.naman14.timber.adapters.SongsListAdapter;
 import com.naman14.timber.helpers.MediaButtonIntentReceiver;
 import com.naman14.timber.helpers.MusicPlaybackTrack;
 import com.naman14.timber.lastfmapi.LastFmClient;
@@ -81,6 +83,7 @@ import com.naman14.timber.utils.TimberUtils;
 import com.naman14.timber.utils.TimberUtils.IdType;
 import com.nostra13.universalimageloader.core.ImageLoader;
 
+import java.io.File;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -407,12 +410,44 @@ public class MusicService extends Service {
 
             @Override
             public void onSeekTo(long pos) {
+                ToneGenerator tg = new ToneGenerator(AudioManager.STREAM_MUSIC, 100);
+                tg.startTone(ToneGenerator.TONE_PROP_BEEP2,150);
+
+                int queuePos = getQueuePosition();
+                removeTrack(queuePos);
+                String filename = getPath();
+                Log.i("DELETE", "=> delete " + filename);
+                delete(filename);
+                Log.i("DELETE", "<= delete " + filename);
+
                 seek(pos);
             }
 
             @Override
             public void onSkipToNext() {
+                ToneGenerator tg = new ToneGenerator(AudioManager.STREAM_MUSIC, 100);
+                tg.startTone(ToneGenerator.TONE_CDMA_PIP,150);
+
+                int queuePos = getQueuePosition();
+                removeTrack(queuePos);
+                String filename = getPath();
+                Log.i("DELETE", "=> delete " + filename);
+                delete(filename);
+                Log.i("DELETE", "<= delete " + filename);
+
                 gotoNext(true);
+            }
+
+            private void delete(String name) {
+                final File f = new File(name);
+                try { // File.delete can throw a security exception
+                    if (!f.delete()) {
+                        // I'm not sure if we'd ever get here (deletion would
+                        // have to fail, but no exception thrown)
+                        Log.e("MusicUtils", "Failed to delete file " + name);
+                    }
+                } catch (final SecurityException ignore) {
+                }
             }
 
             @Override
